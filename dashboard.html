@@ -172,6 +172,82 @@
         .custom-table tr:last-child td { border-bottom: none; }
         .img-proof { width: 48px; height: 48px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 1px solid var(--border-color); transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .img-proof:hover { opacity: 0.9; transform: scale(1.05); }
+
+        /* 🟢 เพิ่มสไตล์สำหรับระบบ User Dropdown มุมขวาบน */
+        .user-profile-dropdown {
+            position: relative;
+            display: inline-block;
+            font-family: inherit;
+        }
+
+        .dropdown-trigger {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #334155;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .dropdown-trigger:hover {
+            background: #e2e8f0;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: calc(100% + 6px);
+            background: #ffffff;
+            min-width: 160px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+            overflow: hidden;
+            padding: 4px 0;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 10px 16px;
+            text-align: left;
+            background: none;
+            border: none;
+            font-size: 14px;
+            color: #334155;
+            cursor: pointer;
+            text-decoration: none;
+            box-sizing: border-box;
+            font-family: inherit;
+            transition: background 0.15s;
+        }
+
+        .dropdown-item:hover {
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        .dropdown-item.text-danger {
+            color: #ef4444;
+        }
+
+        .dropdown-item.text-danger:hover {
+            background: #fef2f2;
+            color: #dc2626;
+        }
     </style>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -185,16 +261,26 @@
                 <a href="orders.html" class="nav-item" id="nav-orders"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16" height="20px" width="20px" xmlns="http://www.w3.org/2000/svg"><path d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m-1.646-7.646-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L8 8.293l2.646-2.647a.5.5 0 0 1 .708.708"></path></svg> รายการสั่งซื้อ</a>
                 <a href="admins.html" class="nav-item" id="nav-admins"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="20px" width="20px" xmlns="http://www.w3.org/2000/svg"><path d="M12 14V22H4C4 17.5817 7.58172 14 12 14ZM12 13C8.685 13 6 10.315 6 7C6 3.685 8.685 1 12 1C15.315 1 18 3.685 18 7C18 10.315 15.315 13 12 13ZM21 17H22V22H14V17H15V16C15 14.3431 16.3431 13 18 13C19.6569 13 21 14.3431 21 16V17ZM19 17V16C19 15.4477 18.5523 15 18 15C17.4477 15 17 15.4477 17 16V17H19Z"></path></svg> จัดการแอดมิน</a>
             </div>
-            <div style="margin-top: auto; padding: 16px;">
-                <button class="btn-logout-sidebar" onclick="logout()">ออกจากระบบ</button>
-            </div>
         </div>
 
         <div class="main-content">
-            <div class="topbar">
-                <button id="toggleSidebarBtn" class="menu-toggle-btn">☰</button>
-                <h1 style="font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -0.5px;">ภาพรวมยอดขาย (Dashboard)</h1>
-            </div>
+          <div class="topbar" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                  <button id="toggleSidebarBtn" class="menu-toggle-btn">☰</button>
+                  <h1 style="font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -0.5px;">ภาพรวมยอดขาย (Dashboard))</h1>
+              </div>
+
+              <div class="user-profile-dropdown">
+                  <div class="dropdown-trigger" onclick="toggleUserDropdown(event)">
+                      <span id="txtUserEmail">กำลังโหลด...</span> <span style="font-size: 10px;">▼</span>
+                  </div>
+                  <div id="userDropdownMenu" class="dropdown-menu">
+                      <a href="update-password.html" target="_blank" class="dropdown-item">เปลี่ยนรหัสผ่าน</a>
+                      <button type="button" class="dropdown-item text-danger" onclick="confirmLogout()">ออกจากระบบ</button>
+                  </div>
+              </div>
+          </div>
+
 
             <div class="dashboard-container">
                 <div class="filter-bar">
@@ -662,16 +748,64 @@
             });
         }
 
+        // เรียกใช้ฟังก์ชันดึงข้อมูล Dashboard
         setTimeout(loadDashboardData, 500);
 
+        // ปุ่ม Hamburger เมนูด้านซ้าย
         document.getElementById('toggleSidebarBtn').addEventListener('click', () => {
             document.querySelector('.sidebar').classList.toggle('closed');
         });
 
+        // ฟังก์ชัน Logout แบบปกติ
         function logout() {
             localStorage.removeItem('sb-admin-auth');
             window.location.href = 'index.html';
         }
+
+        // ฟังก์ชันควบคุม User Dropdown Menu มุมขวาบน
+        async function initUserDropdown() {
+            if (typeof supabase !== 'undefined' && supabase) {
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user && user.email) {
+                        document.getElementById('txtUserEmail').innerText = user.email;
+                    } else {
+                        document.getElementById('txtUserEmail').innerText = 'Unknown User';
+                    }
+                } catch (err) {
+                    console.error("Error initUserDropdown:", err);
+                }
+            }
+
+            // คลิกที่อื่นนอกเหนือจากเมนู ให้ปิดเมนูอัตโนมัติ
+            window.addEventListener('click', function(e) {
+                if (!e.target.closest('.user-profile-dropdown')) {
+                    const menu = document.getElementById('userDropdownMenu');
+                    if(menu) menu.classList.remove('show');
+                }
+            });
+        }
+
+        function toggleUserDropdown(event) {
+            event.stopPropagation();
+            const menu = document.getElementById('userDropdownMenu');
+            if (menu) menu.classList.toggle('show');
+        }
+
+        function confirmLogout() {
+            if (confirm("คุณแน่ใจใช่ไหมว่าต้องการออกจากระบบ?")) {
+                localStorage.removeItem('sb-admin-auth');
+                if (typeof supabase !== 'undefined' && supabase.auth) {
+                    supabase.auth.signOut();
+                }
+                window.location.href = 'index.html';
+            }
+        }
+
+        // ลงทะเบียนให้ทำงานเมื่อโหลดหน้าเว็บเรียบร้อย
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initUserDropdown, 300);
+        });
     </script>
 </body>
 </html>
