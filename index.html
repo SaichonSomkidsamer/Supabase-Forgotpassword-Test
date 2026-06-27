@@ -211,60 +211,73 @@
         });
 
         // 3. ระบบทำงานร่วมกับ Supabase Auth (แก้ไขให้ดึงตัวแปร window.supabaseClient ตาม config.js แล้ว)
-        async function handleAuth() {
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const errorMsg = document.getElementById('errorMessage');
+        // 3. ระบบทำงานร่วมกับ Supabase Auth
+    async function handleAuth() {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const errorMsg = document.getElementById('errorMessage');
 
-            errorMsg.textContent = '';
-            errorMsg.style.display = 'none';
+        errorMsg.textContent = '';
+        errorMsg.style.display = 'none';
 
-            // ดึงตัวแปรจาก config.js มาใช้แบบปลอดภัย
-            const client = window.supabaseClient;
+        const client = window.supabaseClient;
 
-            if (!client) {
-                alert("เกิดข้อผิดพลาด: ระบบตรวจไม่เจอฐานข้อมูล Supabase กรุณาเช็กไฟล์ config.js");
-                return;
-            }
-
-            if (!email || !password) {
-                errorMsg.textContent = "กรุณากรอกข้อมูลให้ครบถ้วน";
-                errorMsg.style.display = 'block';
-                return;
-            }
-
-            try {
-                if (isLogin) {
-                    // ทำงานตอนกด เข้าสู่ระบบ
-                    const { data, error } = await client.auth.signInWithPassword({ email, password });
-                    if (error) {
-                        errorMsg.textContent = error.message;
-                        errorMsg.style.display = 'block';
-                    } else {
-                        alert("เข้าสู่ระบบสำเร็จ!");
-                        window.location.href = 'orders.html'; // ลิงก์ไปหน้าออเดอร์เมื่อสำเร็จ
-                    }
-                } else {
-                    // ทำงานตอนกด สมัครสมาชิก
-                    if (password.length < 6) {
-                        errorMsg.textContent = 'Password should be at least 6 characters.';
-                        errorMsg.style.display = 'block';
-                        return;
-                    }
-
-                    const { data, error } = await client.auth.signUp({ email, password });
-                    if (error) {
-                        errorMsg.textContent = error.message;
-                        errorMsg.style.display = 'block';
-                    } else {
-                        alert('สมัครบัญชีแอดมินสำเร็จ! กรุณาให้ Owner เปิดสิทธิ์ในระบบก่อนใช้งาน');
-                        toggleFormMode(); // สลับกลับมาหน้าล็อคอินอัตโนมัติ
-                    }
-                }
-            } catch (err) {
-                alert("เกิดข้อผิดพลาดภายในระบบ: " + err.message);
-            }
+        if (!email || !password) {
+            errorMsg.textContent = "กรุณากรอกข้อมูลให้ครบถ้วน";
+            errorMsg.style.display = 'block';
+            return;
         }
+
+        try {
+            if (isLogin) {
+                // --- ขั้นตอนการ Login ---
+                const { data, error } = await client.auth.signInWithPassword({ email, password });
+
+                if (error) {
+                    errorMsg.textContent = error.message;
+                    errorMsg.style.display = 'block';
+                    return;
+                }
+
+                // --- ป้อมปราการตรวจสอบสถานะ ---
+                const { data: adminData, error: dbError } = await client
+                    .from('admin_users')
+                    .select('status')
+                    .eq('email', email)
+                    .single();
+
+                // ถ้ามีชื่อในตาราง แต่สถานะเป็น 'ระงับการใช้งาน' ให้ดีดออก!
+                if (adminData && adminData.status === 'ระงับการใช้งาน') {
+                    await client.auth.signOut();
+                    alert('บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อแอดมิน');
+                    return;
+                }
+
+                // ถ้าผ่านหมด
+                alert("เข้าสู่ระบบสำเร็จ!");
+                window.location.href = 'orders.html';
+
+            } else {
+                // --- ขั้นตอนการสมัครสมาชิก ---
+                if (password.length < 6) {
+                    errorMsg.textContent = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
+                    errorMsg.style.display = 'block';
+                    return;
+                }
+
+                const { data, error } = await client.auth.signUp({ email, password });
+                if (error) {
+                    errorMsg.textContent = error.message;
+                    errorMsg.style.display = 'block';
+                } else {
+                    alert('สมัครบัญชีแอดมินสำเร็จ! กรุณาให้ Owner เปิดสิทธิ์ในระบบก่อนใช้งาน');
+                    toggleFormMode();
+                }
+            }
+        } catch (err) {
+            alert("เกิดข้อผิดพลาดภายในระบบ: " + err.message);
+        }
+    }
         // ตัวอย่างโค้ดในส่วนของการ Login
 async function handleLogin() {
     const email = document.getElementById('email').value;
