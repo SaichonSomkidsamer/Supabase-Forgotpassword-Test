@@ -23,4 +23,4 @@ async function enforcePermissions() {
 }
 
 // เรียกใช้ฟังก์ชันทันทีที่โหลดหน้าเว็บ
-enforcePermissions();
+renforcePermissions();
