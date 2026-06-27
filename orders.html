@@ -959,6 +959,30 @@
   window.addEventListener('DOMContentLoaded', () => {
       hideAdminRestrictions();
   });
+  async function applyRolePermissions() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+        .from('admin_users')
+        .select('role')
+        .eq('email', user.email)
+        .single();
+
+    if (data && data.role === 'Admin') {
+        // ซ่อนทุกอย่างที่เป็น owner-only
+        document.querySelectorAll('.owner-only').forEach(el => {
+            el.style.display = 'none';
+        });
+
+        // ซ่อนเมนูจัดการแอดมินใน Sidebar
+        const adminMenu = document.getElementById('nav-admins');
+        if (adminMenu) adminMenu.style.display = 'none';
+    }
+}
+
+// เรียกใช้หลังจากโหลดข้อมูลเสร็จ
+// ในโค้ดของคุณ ให้เรียกฟังก์ชันนี้ต่อท้ายฟังก์ชัน loadOrders()
     </script>
 </body>
 
