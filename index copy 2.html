@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบ / ลงทะเบียน - OMS Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', 'Noto Sans Thai', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .auth-card h2 {
+            text-align: center;
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: 700;
+            color: #000000;
+        }
+
+        .auth-card p {
+            text-align: center;
+            color: #333333;
+            font-size: 15px;
+            margin: 0 0 25px 0;
+            line-height: 1.4;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333333;
+            font-size: 15px;
+        }
+
+        .input-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #cccccc;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-control:focus {
+            border-color: #5c5cff;
+        }
+
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-wrapper .input-control {
+            padding-right: 50px;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 16px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #666666;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            background: #5c5cff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        .btn-submit:hover {
+            background: #4b4bdf;
+        }
+
+        #errorMessage {
+            color: #dc3545;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+            line-height: 1.4;
+        }
+
+        .toggle-form-mode {
+            text-align: center;
+            margin-top: 20px;
+            color: #5c5cff;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .toggle-form-mode:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-card">
+        <h2 id="formTitle">เข้าสู่ระบบ</h2>
+        <p id="formDesc">สำหรับผู้ดูแลระบบ (Admin & Owner)</p>
+
+        <div class="form-group">
+            <label for="email">อีเมล</label>
+            <input type="email" id="email" placeholder="admin@domain.com" class="input-control">
+        </div>
+
+        <div class="form-group">
+            <label for="password">รหัสผ่าน</label>
+            <div class="password-wrapper">
+                <input type="password" id="password" placeholder="••••••••" class="input-control">
+                <button type="button" id="togglePassword" class="toggle-btn" title="แสดง/ซ่อนรหัสผ่าน">👁️</button>
+            </div>
+        </div>
+        <div class="form-group" style="text-align: right; margin-top: -10px; margin-bottom: 20px;">
+    <a href="forgot-password.html" style="color: #5c5cff; text-decoration: none; font-size: 14px;">ลืมรหัสผ่าน?</a>
+</div>
+
+        <button id="submitBtn" onclick="handleAuth()" class="btn-submit">เข้าสู่ระบบ</button>
+
+        <div id="errorMessage"></div>
+
+        <div id="toggleBtn" class="toggle-form-mode" onclick="toggleFormMode()">สมัครใช้งานสำหรับ Admin ใหม่</div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        let isLogin = true;
+
+        // 1. ฟังก์ชันสลับหน้าจอระหว่าง Login และ Register
+        function toggleFormMode() {
+            isLogin = !isLogin;
+            const formTitle = document.getElementById('formTitle');
+            const formDesc = document.getElementById('formDesc');
+            const submitBtn = document.getElementById('submitBtn');
+            const toggleBtn = document.getElementById('toggleBtn');
+            const errorMsg = document.getElementById('errorMessage');
+
+            errorMsg.style.display = 'none';
+
+            if (isLogin) {
+                formTitle.innerText = "เข้าสู่ระบบ";
+                formDesc.innerText = "สำหรับผู้ดูแลระบบ (Admin & Owner)";
+                submitBtn.innerText = "เข้าสู่ระบบ";
+                toggleBtn.innerText = "สมัครใช้งานสำหรับ Admin ใหม่";
+                document.getElementById('password').placeholder = "••••••••";
+            } else {
+                formTitle.innerText = "ลงทะเบียน Admin";
+                formDesc.innerText = "สมัครบัญชีใหม่ (ต้องรอ Owner เปิดสิทธิ์ก่อนใช้งาน)";
+                submitBtn.innerText = "สมัครสมาชิก";
+                toggleBtn.innerText = "กลับไปหน้าเข้าสู่ระบบ";
+                document.getElementById('password').placeholder = "รหัสผ่านอย่างน้อย 6 ตัวอักษร";
+            }
+        }
+
+        // 2. ระบบควบคุมการ แสดง / ซ่อน รหัสผ่านด้วยดวงตา
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            const passwordInput = document.getElementById('password');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.textContent = type === 'password' ? '👁️' : '🙈';
+        });
+
+        // 3. ระบบทำงานร่วมกับ Supabase Auth (แก้ไขให้ดึงตัวแปร window.supabaseClient ตาม config.js แล้ว)
+        async function handleAuth() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMessage');
+
+            errorMsg.textContent = '';
+            errorMsg.style.display = 'none';
+
+            // ดึงตัวแปรจาก config.js มาใช้แบบปลอดภัย
+            const client = window.supabaseClient;
+
+            if (!client) {
+                alert("เกิดข้อผิดพลาด: ระบบตรวจไม่เจอฐานข้อมูล Supabase กรุณาเช็กไฟล์ config.js");
+                return;
+            }
+
+            if (!email || !password) {
+                errorMsg.textContent = "กรุณากรอกข้อมูลให้ครบถ้วน";
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            try {
+                if (isLogin) {
+                    // ทำงานตอนกด เข้าสู่ระบบ
+                    const { data, error } = await client.auth.signInWithPassword({ email, password });
+                    if (error) {
+                        errorMsg.textContent = error.message;
+                        errorMsg.style.display = 'block';
+                    } else {
+                        alert("เข้าสู่ระบบสำเร็จ!");
+                        window.location.href = 'orders.html'; // ลิงก์ไปหน้าออเดอร์เมื่อสำเร็จ
+                    }
+                } else {
+                    // ทำงานตอนกด สมัครสมาชิก
+                    if (password.length < 6) {
+                        errorMsg.textContent = 'Password should be at least 6 characters.';
+                        errorMsg.style.display = 'block';
+                        return;
+                    }
+
+                    const { data, error } = await client.auth.signUp({ email, password });
+                    if (error) {
+                        errorMsg.textContent = error.message;
+                        errorMsg.style.display = 'block';
+                    } else {
+                        alert('สมัครบัญชีแอดมินสำเร็จ! กรุณาให้ Owner เปิดสิทธิ์ในระบบก่อนใช้งาน');
+                        toggleFormMode(); // สลับกลับมาหน้าล็อคอินอัตโนมัติ
+                    }
+                }
+            } catch (err) {
+                alert("เกิดข้อผิดพลาดภายในระบบ: " + err.message);
+            }
+        }
+    </script>
+</body>
+</html>
