@@ -1,0 +1,676 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - OMS Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/layout.css">
+    <style>
+        /* Grid Layouts */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        /* Card UX Design Minimal Modern style */
+        .stat-card-custom {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .stat-card-custom:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: var(--primary-light);
+        }
+
+        .card-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .card-title-text {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .card-icon-wrapper {
+            padding: 10px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 4px 0 rgba(255, 255, 255, 0.4);
+            flex-shrink: 0;
+        }
+        .card-icon-wrapper.primary { color: var(--primary); background: linear-gradient(135deg, #e0e7ff, #c7d2fe); }
+        .card-icon-wrapper.success { color: var(--success); background: linear-gradient(135deg, #ecfdf5, #a7f3d0); }
+        .card-icon-wrapper.warning { color: var(--warning); background: linear-gradient(135deg, #fffbeb, #fde68a); }
+        .card-icon-wrapper.gray { color: var(--neutral-gray); background: linear-gradient(135deg, #f1f5f9, #cbd5e1); }
+
+        .card-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            width: 100%;
+        }
+
+        .card-col {
+            flex: 1;
+        }
+        .card-col.right {
+            text-align: right;
+        }
+
+        .card-divider {
+            width: 1px;
+            background: var(--border-color);
+            align-self: stretch;
+            margin: 0 16px;
+        }
+
+        .main-value {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+
+        .sub-value { font-size: 20px; font-weight: 700; color: var(--text-main); line-height: 1.2; }
+        .sub-label { font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+
+        /* Visual Layout Section */
+        .visual-section {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+            align-items: stretch;
+            margin-bottom: 32px;
+        }
+
+        .stats-grid-compact {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            align-content: start;
+        }
+
+        @media (max-width: 1024px) {
+            .visual-section { grid-template-columns: 1fr; }
+        }
+
+        .chart-box {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0 0 24px 0;
+            color: var(--text-main);
+            width: 100%;
+            text-align: left;
+        }
+
+        /* Tables */
+        .table-responsive {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+        .custom-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: left; font-size: 14px; }
+        .custom-table th {
+            background: #f8fafc;
+            padding: 16px 24px;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+        .custom-table td {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+        .custom-table tbody tr {
+            transition: background-color 0.2s;
+        }
+        .custom-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        .custom-table tr:last-child td { border-bottom: none; }
+        .img-proof { width: 48px; height: 48px; object-fit: cover; border-radius: 10px; cursor: pointer; border: 1px solid var(--border-color); transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .img-proof:hover { opacity: 0.9; transform: scale(1.05); }
+    </style>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <div class="sidebar">
+            <div class="sidebar-logo">Admin Backend</div>
+            <div class="sidebar-menu">
+                <a href="dashboard.html" class="nav-item" id="nav-dash"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="20px" width="20px" xmlns="http://www.w3.org/2000/svg"><path d="M3 12C3 12.5523 3.44772 13 4 13H10C10.5523 13 11 12.5523 11 12V4C11 3.44772 10.5523 3 10 3H4C3.44772 3 3 3.44772 3 4V12ZM3 20C3 20.5523 3.44772 21 4 21H10C10.5523 21 11 20.5523 11 20V16C11 15.4477 10.5523 15 10 15H4C3.44772 15 3 15.4477 3 16V20ZM13 20C13 20.5523 13.4477 21 14 21H20C20.5523 21 21 20.5523 21 20V12C21 11.4477 20.5523 11 20 11H14C13.4477 11 13 11.4477 13 12V20ZM14 3C13.4477 3 13 3.44772 13 4V8C13 8.55228 13.4477 9 14 9H20C20.5523 9 21 8.55228 21 8V4C21 3.44772 20.5523 3 20 3H14Z"></path></svg> Dashboard</a>
+                <a href="orders.html" class="nav-item" id="nav-orders"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16" height="20px" width="20px" xmlns="http://www.w3.org/2000/svg"><path d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m-1.646-7.646-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L8 8.293l2.646-2.647a.5.5 0 0 1 .708.708"></path></svg> รายการสั่งซื้อ</a>
+                <a href="admins.html" class="nav-item" id="nav-admins"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" height="20px" width="20px" xmlns="http://www.w3.org/2000/svg"><path d="M12 14V22H4C4 17.5817 7.58172 14 12 14ZM12 13C8.685 13 6 10.315 6 7C6 3.685 8.685 1 12 1C15.315 1 18 3.685 18 7C18 10.315 15.315 13 12 13ZM21 17H22V22H14V17H15V16C15 14.3431 16.3431 13 18 13C19.6569 13 21 14.3431 21 16V17ZM19 17V16C19 15.4477 18.5523 15 18 15C17.4477 15 17 15.4477 17 16V17H19Z"></path></svg> จัดการแอดมิน</a>
+            </div>
+            <div style="margin-top: auto; padding: 16px;">
+                <button class="btn-logout-sidebar" onclick="logout()">ออกจากระบบ</button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="topbar">
+                <button id="toggleSidebarBtn" class="menu-toggle-btn">☰</button>
+                <h1 style="font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -0.5px;">ภาพรวมยอดขาย (Dashboard)</h1>
+            </div>
+
+            <div class="dashboard-container">
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label for="quickSelect">ช่วงเวลาด่วน</label>
+                        <select id="quickSelect" class="filter-control">
+                            <option value="today">Today — วันนี้</option>
+                            <option value="yesterday">Yesterday — เมื่อวาน</option>
+                            <option value="last7">Last 7 Days — 7 วันที่ผ่านมา</option>
+                            <option value="last14">Last 14 Days — 14 วันที่ผ่านมา</option>
+                            <option value="last30" selected>Last 30 Days — 30 วันที่ผ่านมา</option>
+                            <option value="last90">Last 90 Days — 90 วันที่ผ่านมา</option>
+                            <option value="thisWeek">This Week — สัปดาห์นี้</option>
+                            <option value="lastWeek">Last Week — สัปดาห์ที่แล้ว</option>
+                            <option value="thisMonth">This Month — เดือนนี้</option>
+                            <option value="lastMonth">Last Month — เดือนที่แล้ว</option>
+                            <option value="thisYear">This Year — ปีนี้</option>
+                            <option value="custom">Custom — กำหนดเอง</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="startDate">เริ่มต้น</label>
+                        <input type="date" id="startDate" class="filter-control">
+                    </div>
+                    <div class="filter-group">
+                        <label for="endDate">สิ้นสุด</label>
+                        <input type="date" id="endDate" class="filter-control">
+                    </div>
+                    <button id="btnSearch" class="filter-control" style="background: var(--primary); color: white; border: none; cursor: pointer; font-weight: 500; padding: 10px 24px;">ดึงข้อมูล</button>
+                </div>
+
+                <div>
+                    <div class="section-header">
+                        <h2 class="section-title">สรุปรายรับรอบเดือน & สิทธิ์เข้าถึงไฟล์สินค้า</h2>
+                        <p class="section-subtitle">ข้อมูลภาพรวมสะสมทั้งหมดในระบบ</p>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card-custom">
+                            <div class="card-header-flex">
+                                <span class="card-title-text">เปรียบเทียบรายรับ<br>(ส่งสินค้าแล้ว)</span>
+                                <div class="card-icon-wrapper primary">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </div>
+                            </div>
+                            <div class="card-flex">
+                                <div class="card-col">
+                                    <div class="sub-label">เดือนที่แล้ว</div>
+                                    <div class="sub-value" id="lastMonthSales">฿0</div>
+                                    <div class="sub-label" id="lastMonthCount" style="font-size:11px; margin-top:4px;">0 รายการ</div>
+                                </div>
+                                <div class="card-divider"></div>
+                                <div class="card-col right">
+                                    <div class="sub-label" style="color: var(--primary); font-weight:600;">เดือนนี้</div>
+                                    <div class="sub-value" id="thisMonthSales" style="color: var(--primary);">฿0</div>
+                                    <div class="sub-label" id="thisMonthCount" style="font-size:11px; margin-top:4px; color: var(--primary);">0 รายการ</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card-custom">
+                            <div class="card-header-flex">
+                                <span class="card-title-text">สิทธิ์เข้าถึงไฟล์<br>(expired_status)</span>
+                                <div class="card-icon-wrapper success">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.952 11.952 0 01-7.618 3.013C5.4 13.045 8.1 17.76 12 19.44a11.952 11.952 0 007.618-13.484z"></path></svg>
+                                </div>
+                            </div>
+                            <div class="card-flex">
+                                <div class="card-col">
+                                    <div class="sub-label" style="color: var(--success); font-weight: 600;">ยังไม่หมดอายุ</div>
+                                    <div class="main-value" id="activeLicenseCount">0</div>
+                                </div>
+                                <div class="card-divider"></div>
+                                <div class="card-col right">
+                                    <div class="sub-label">หมดอายุแล้ว</div>
+                                    <div class="main-value" id="expiredLicenseCount" style="color: var(--neutral-gray)">0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card-custom">
+                            <div class="card-header-flex">
+                                <span class="card-title-text">สถานะการลบไฟล์<br>(remove_status)</span>
+                                <div class="card-icon-wrapper warning">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </div>
+                            </div>
+                            <div class="card-flex">
+                                <div class="card-col">
+                                    <div class="sub-label">รอตรวจสอบ</div>
+                                    <div class="main-value" id="removePendingCount">0</div>
+                                </div>
+                                <div class="card-divider"></div>
+                                <div class="card-col right">
+                                    <div class="sub-label">ตรวจสอบแล้ว</div>
+                                    <div class="main-value" id="removeDoneCount" style="color: var(--neutral-gray)">0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card-custom">
+                            <div class="card-header-flex">
+                                <span class="card-title-text">ลูกค้าที่มีสิทธิ์<br>เข้าถึงไฟล์ทั้งหมด</span>
+                                <div class="card-icon-wrapper primary">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                </div>
+                            </div>
+                            <div class="card-flex">
+                                <div class="card-col">
+                                    <div class="sub-label">ลูกค้าทั้งหมด</div>
+                                    <div class="sub-value" id="totalAccessCustomers">0 คน</div>
+                                </div>
+                                <div class="card-divider"></div>
+                                <div class="card-col right">
+                                    <div class="sub-label">สร้างรายได้รวม</div>
+                                    <div class="sub-value" id="totalAccessRevenue" style="color: var(--success);">฿0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="section-header">
+                        <h2 class="section-title">สรุปสถานะรายการสินค้าตาม Filter ที่เลือก</h2>
+                        <p class="section-subtitle">วิเคราะห์สัดส่วนและยอดคำสั่งซื้อในช่วงเวลาที่กำหนด</p>
+                    </div>
+
+                    <div class="visual-section">
+                        <div class="chart-box">
+                            <h3 class="chart-title">สัดส่วนสถานะชำระเงิน</h3>
+                            <div style="width: 100%; max-width: 220px; position: relative; margin: auto;">
+                                <canvas id="paymentPieChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="stats-grid-compact">
+                            <div class="stat-card-custom" style="padding: 24px;">
+                                <div class="card-header-flex" style="margin-bottom: 12px;">
+                                    <span class="sub-label" style="font-weight:600; color: var(--text-main); font-size: 14px; margin: 0;">รอตรวจสอบ</span>
+                                    <div class="card-icon-wrapper warning">
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="main-value" id="pPendingCount" style="font-size: 36px; margin-bottom: 12px;">0</div>
+                                    <div class="card-divider" style="margin: 0 0 12px 0; width: 100%; height: 1px;"></div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span class="sub-label" style="margin: 0;">ยอดรวม:</span>
+                                        <span id="pPendingAmount" style="font-weight: 700; color: var(--text-main); font-size: 15px;">฿0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="stat-card-custom" style="padding: 24px;">
+                                <div class="card-header-flex" style="margin-bottom: 12px;">
+                                    <span class="sub-label" style="font-weight:600; color: var(--text-main); font-size: 14px; margin: 0;">รอส่งไฟล์</span>
+                                    <div class="card-icon-wrapper primary">
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="main-value" id="pPaidWaitCount" style="font-size: 36px; margin-bottom: 12px;">0</div>
+                                    <div class="card-divider" style="margin: 0 0 12px 0; width: 100%; height: 1px;"></div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span class="sub-label" style="margin: 0;">ยอดรวม:</span>
+                                        <span id="pPaidWaitAmount" style="font-weight: 700; color: var(--text-main); font-size: 15px;">฿0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="stat-card-custom" style="padding: 24px;">
+                                <div class="card-header-flex" style="margin-bottom: 12px;">
+                                    <span class="sub-label" style="font-weight:600; color: var(--text-main); font-size: 14px; margin: 0;">ส่งสินค้าแล้ว</span>
+                                    <div class="card-icon-wrapper success">
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="main-value" id="pShippedCount" style="font-size: 36px; margin-bottom: 12px;">0</div>
+                                    <div class="card-divider" style="margin: 0 0 12px 0; width: 100%; height: 1px;"></div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span class="sub-label" style="margin: 0;">ยอดรวม:</span>
+                                        <span id="pShippedAmount" style="font-weight: 700; color: var(--text-main); font-size: 15px;">฿0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="stat-card-custom" style="padding: 24px;">
+                                <div class="card-header-flex" style="margin-bottom: 12px;">
+                                    <span class="sub-label" style="font-weight:600; color: var(--text-main); font-size: 14px; margin: 0;">ชำระเงินไม่ผ่าน</span>
+                                    <div class="card-icon-wrapper gray">
+                                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="main-value" id="pUnpaidCount" style="font-size: 36px; margin-bottom: 12px;">0</div>
+                                    <div class="card-divider" style="margin: 0 0 12px 0; width: 100%; height: 1px;"></div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span class="sub-label" style="margin: 0;">ยอดรวม:</span>
+                                        <span id="pUnpaidAmount" style="font-weight: 700; color: var(--text-main); font-size: 15px;">฿0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="section-header">
+                        <h2 class="section-title">รายการเหตุผลสถานะ "ชำระเงินไม่ผ่าน"</h2>
+                        <p class="section-subtitle">ตรวจสอบปัญหาและบันทึกเพิ่มเติมจากทีมแอดมิน</p>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="custom-table" id="unpaidTable">
+                            <thead>
+                                <tr>
+                                    <th>OrderID</th>
+                                    <th>ข้อมูลลูกค้า (Customer Info)</th>
+                                    <th>หลักฐานการชำระเงิน</th>
+                                    <th>เหตุผลที่ Admin ระบุ (Note)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="4" style="text-align:center; color: var(--text-muted); padding: 32px;">กำลังโหลดข้อมูล...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script>
+        document.getElementById('nav-dash').classList.add('active');
+
+        let paymentChart = null;
+
+        function getDateRange(preset) {
+            const now = new Date();
+            let start = new Date();
+            let end = new Date();
+
+            switch (preset) {
+                case 'today':
+                    start.setHours(0,0,0,0); end.setHours(23,59,59,999);
+                    break;
+                case 'yesterday':
+                    start.setDate(now.getDate() - 1); start.setHours(0,0,0,0);
+                    end.setDate(now.getDate() - 1); end.setHours(23,59,59,999);
+                    break;
+                case 'last7':
+                    start.setDate(now.getDate() - 7); break;
+                case 'last14':
+                    start.setDate(now.getDate() - 14); break;
+                case 'last30':
+                    start.setDate(now.getDate() - 30); break;
+                case 'last90':
+                    start.setDate(now.getDate() - 90); break;
+                case 'thisWeek':
+                    const day = now.getDay();
+                    start.setDate(now.getDate() - day + (day === 0 ? -6 : 1)); start.setHours(0,0,0,0);
+                    break;
+                case 'lastWeek':
+                    const prevDay = now.getDay();
+                    start.setDate(now.getDate() - prevDay - 6); start.setHours(0,0,0,0);
+                    end.setDate(now.getDate() - prevDay); end.setHours(23,59,59,999);
+                    break;
+                case 'thisMonth':
+                    start = new Date(now.getFullYear(), now.getMonth(), 1);
+                    break;
+                case 'lastMonth':
+                    start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+                    break;
+                case 'thisYear':
+                    start = new Date(now.getFullYear(), 0, 1);
+                    break;
+            }
+            return { start, end };
+        }
+
+        document.getElementById('quickSelect').addEventListener('change', (e) => {
+            if (e.target.value !== 'custom') {
+                const range = getDateRange(e.target.value);
+                document.getElementById('startDate').value = range.start.toISOString().split('T')[0];
+                document.getElementById('endDate').value = range.end.toISOString().split('T')[0];
+                loadDashboardData();
+            }
+        });
+
+        const initialRange = getDateRange('last30');
+        document.getElementById('startDate').value = initialRange.start.toISOString().split('T')[0];
+        document.getElementById('endDate').value = initialRange.end.toISOString().split('T')[0];
+
+        document.getElementById('btnSearch').addEventListener('click', loadDashboardData);
+
+        async function loadDashboardData() {
+            if (typeof supabase === 'undefined' || !supabase) return;
+
+            const startDateStr = document.getElementById('startDate').value;
+            const endDateStr = document.getElementById('endDate').value;
+
+            const filterStart = new Date(startDateStr + 'T00:00:00').toISOString();
+            const filterEnd = new Date(endDateStr + 'T23:59:59').toISOString();
+
+            const { data: allOrders, error: errAll } = await supabase.from('orders').select('*');
+            if (!errAll && allOrders) {
+                calculateSection1(allOrders);
+            }
+
+            const { data: filteredOrders, error: errFilter } = await supabase
+                .from('orders')
+                .select('*')
+                .gte('created_at', filterStart)
+                .lte('created_at', filterEnd);
+
+            if (!errFilter && filteredOrders) {
+                renderSection2AndChart(filteredOrders);
+                renderSection3Table(filteredOrders);
+            }
+        }
+
+        function calculateSection1(orders) {
+            const now = new Date();
+            const firstDayThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const firstDayLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const lastDayLastMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+
+            let lastMonthCount = 0, lastMonthSales = 0;
+            let thisMonthCount = 0, thisMonthSales = 0;
+            let activeLicense = 0, expiredLicense = 0;
+            let removePending = 0, removeDone = 0;
+            let totalAccessCust = 0, totalAccessRev = 0;
+
+            orders.forEach(o => {
+                const orderDate = new Date(o.created_at);
+                const price = Number(o.price || 0);
+
+                if (o.payment_status === 'ส่งสินค้าแล้ว') {
+                    if (orderDate >= firstDayLastMonth && orderDate <= lastDayLastMonth) {
+                        lastMonthCount++;
+                        lastMonthSales += price;
+                    } else if (orderDate >= firstDayThisMonth) {
+                        thisMonthCount++;
+                        thisMonthSales += price;
+                    }
+                }
+
+                if (o.expired_status === 'ยังไม่หมดอายุ') activeLicense++;
+                if (o.expired_status === 'หมดอายุ') expiredLicense++;
+                if (o.remove_status === 'รอตรวจสอบ') removePending++;
+                if (o.remove_status === 'ตรวจสอบแล้ว') removeDone++;
+
+                if (o.expired_status === 'ยังไม่หมดอายุ') {
+                    totalAccessCust++;
+                    totalAccessRev += price;
+                }
+            });
+
+            document.getElementById('lastMonthSales').innerText = '฿' + lastMonthSales.toLocaleString();
+            document.getElementById('lastMonthCount').innerText = lastMonthCount + ' รายการ';
+            document.getElementById('thisMonthSales').innerText = '฿' + thisMonthSales.toLocaleString();
+            document.getElementById('thisMonthCount').innerText = thisMonthCount + ' รายการ';
+            document.getElementById('activeLicenseCount').innerText = activeLicense;
+            document.getElementById('expiredLicenseCount').innerText = expiredLicense;
+            document.getElementById('removePendingCount').innerText = removePending;
+            document.getElementById('removeDoneCount').innerText = removeDone;
+            document.getElementById('totalAccessCustomers').innerText = totalAccessCust + ' คน';
+            document.getElementById('totalAccessRevenue').innerText = '฿' + totalAccessRev.toLocaleString();
+        }
+
+        function renderSection2AndChart(orders) {
+            const stats = {
+                'รอตรวจสอบ': { count: 0, amount: 0 },
+                'ชำระเงินแล้ว (รอส่งไฟล์)': { count: 0, amount: 0 },
+                'ส่งสินค้าแล้ว': { count: 0, amount: 0 },
+                'ชำระเงินไม่ผ่าน': { count: 0, amount: 0 }
+            };
+
+            orders.forEach(o => {
+                const status = o.payment_status;
+                if (stats[status] !== undefined) {
+                    stats[status].count++;
+                    stats[status].amount += Number(o.price || 0);
+                }
+            });
+
+            document.getElementById('pPendingCount').innerText = stats['รอตรวจสอบ'].count;
+            document.getElementById('pPendingAmount').innerText = '฿' + stats['รอตรวจสอบ'].amount.toLocaleString();
+            document.getElementById('pPaidWaitCount').innerText = stats['ชำระเงินแล้ว (รอส่งไฟล์)'].count;
+            document.getElementById('pPaidWaitAmount').innerText = '฿' + stats['ชำระเงินแล้ว (รอส่งไฟล์)'].amount.toLocaleString();
+            document.getElementById('pShippedCount').innerText = stats['ส่งสินค้าแล้ว'].count;
+            document.getElementById('pShippedAmount').innerText = '฿' + stats['ส่งสินค้าแล้ว'].amount.toLocaleString();
+            document.getElementById('pUnpaidCount').innerText = stats['ชำระเงินไม่ผ่าน'].count;
+            document.getElementById('pUnpaidAmount').innerText = '฿' + stats['ชำระเงินไม่ผ่าน'].amount.toLocaleString();
+
+            const ctx = document.getElementById('paymentPieChart').getContext('2d');
+            if (paymentChart) {
+                paymentChart.destroy();
+            }
+
+            paymentChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(stats),
+                    datasets: [{
+                        data: Object.values(stats).map(s => s.count),
+                        backgroundColor: ['#f59e0b', '#4f46e5', '#10b981', '#64748b'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '75%',
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function renderSection3Table(orders) {
+            const tbody = document.querySelector('#unpaidTable tbody');
+            tbody.innerHTML = '';
+
+            const unpaidOrders = orders.filter(o => o.payment_status === 'ชำระเงินไม่ผ่าน');
+
+            if (unpaidOrders.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--text-muted); padding: 32px;">ไม่มีข้อมูลที่ชำระเงินไม่ผ่านในช่วงเวลานี้</td></tr>`;
+                return;
+            }
+
+            unpaidOrders.forEach(o => {
+                const tr = document.createElement('tr');
+
+                const tdId = document.createElement('td');
+                tdId.innerText = o.id || o.order_id || 'N/A';
+                tdId.style.fontWeight = '500';
+                tr.appendChild(tdId);
+
+                const tdCust = document.createElement('td');
+                tdCust.innerHTML = `<strong>${o.customer_name || 'ไม่ระบุชื่อ'}</strong><br><span style="font-size:12px; color: var(--text-muted);">${o.customer_email || '-'}</span>`;
+                tr.appendChild(tdCust);
+
+                const tdProof = document.createElement('td');
+                if (o.slip_url || o.payment_proof_path) {
+                    const imgUrl = o.slip_url || o.payment_proof_path;
+                    tdProof.innerHTML = `<img src="${imgUrl}" class="img-proof" alt="Slip" onclick="window.open('${imgUrl}', '_blank')">`;
+                } else {
+                    tdProof.innerHTML = `<span style="color: var(--text-muted); font-size:12px;">ไม่มีหลักฐาน</span>`;
+                }
+                tr.appendChild(tdProof);
+
+                const tdNote = document.createElement('td');
+                tdNote.innerText = o.note || '-';
+                tdNote.style.color = 'var(--text-muted)';
+                tdNote.style.fontWeight = '500';
+                tr.appendChild(tdNote);
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        setTimeout(loadDashboardData, 500);
+
+        document.getElementById('toggleSidebarBtn').addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.toggle('closed');
+        });
+
+        function logout() {
+            localStorage.removeItem('sb-admin-auth');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

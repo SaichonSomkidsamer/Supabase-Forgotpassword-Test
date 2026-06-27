@@ -1,0 +1,150 @@
+
+/* 1. ดึงฟอนต์ Poppins และ Sarabun มาจาก Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+/* 2. ตั้งค่าให้ทั้งหน้าเว็บเปิดใช้งานพร้อมกัน */
+* {
+    font-family: 'Poppins', 'Sarabun', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 3. สำหรับพวกช่องกรอกข้อมูล (Input, Select) บางทีมันไม่ยอมเปลี่ยนตามตัวแม่ ให้บังคับเพิ่มตรงนี้ครับ */
+input, select, textarea, button {
+    font-family: 'Poppins', 'Sarabun', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Inter', 'Noto Sans Thai', sans-serif;
+    color: var(--text-main);
+    background-color: var(--bg-main);
+    margin: 0;
+    padding: 0;
+}
+
+.login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.glass-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+.input-group { margin-bottom: 20px; text-align: left; }
+.input-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: 500; }
+.input-field { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 14px; outline: none; }
+
+.btn-primary { width: 100%; padding: 12px; background: #6366f1; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 500; margin-top: 10px; }
+.btn-primary:hover { background: #4f46e5; }
+.toggle-form { margin-top: 15px; color: #6366f1; cursor: pointer; font-size: 14px; text-decoration: underline; }
+
+.app-layout { display: flex; min-height: 100vh; }
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: #1e293b;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+/* 🎯 วางโค้ด 2 บล็อกนี้ต่อท้ายคลาส .sidebar ได้เลยครับ */
+.sidebar.closed {
+    width: 0;
+    overflow: hidden;
+}
+
+/* แถม: สไตล์สำหรับปุ่มแฮมเบอร์เกอร์ (☰) ให้ดูสวยงามและเข้ากับธีม */
+.btn-toggle-sidebar {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #4b5563;
+    padding: 5px 10px;
+    border-radius: 6px;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-toggle-sidebar:hover {
+    background: #f3f4f6;
+}
+
+/* ค้นหาคลาสหรือแท็กที่เป็นหัวตารางของคุณ */
+table th {
+    position: -webkit-sticky; /* รองรับ Safari */
+    position: sticky;
+    top: 0;                   /* ล็อกให้อยู่บนสุดเสมอเมื่อเลื่อนจอ */
+    background-color: #f1f5f9; /* ⚠️ สำคัญมาก: ต้องใส่สีพื้นหลังให้หัวตาราง ไม่งั้นเวลาเลื่อน ตัวหนังสือในตารางจะซ้อนทะลุขึ้นมาเห็นด้านหลังครับ */
+    z-index: 10;              /* ดันให้อยู่ชั้นบนสุด เพื่อไม่ให้โดนแถวข้อมูลอื่นบัง */
+}
+/* --------------------------------------------- */
+.sidebar-logo {
+    padding: 24px;
+    font-size: 20px;
+    font-weight: 700;
+    border-bottom: 1px solid #334155;
+    letter-spacing: -0.5px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.nav-item:hover, .nav-item.active {
+    color: #ffffff;
+    background-color: #334155;
+}
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.topbar {
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.btn-logout { background: #fee2e2; color: #dc2626; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+
+.table-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; text-align: left; }
+th, td { padding: 14px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+th { background: #f9fafb; color: #6b7280; font-weight: 500; }
+.td-input { width: 100%; padding: 6px; border: 1px solid #d1d5db; border-radius: 6px; }
+.td-select { padding: 6px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; }
+.btn-slip { display: inline-block; padding: 4px 10px; background: #e0e7ff; color: #6366f1; border-radius: 6px; text-decoration: none; font-size: 13px; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+.stat-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.stat-title { color: #6b7280; font-size: 14px; }
+.stat-value { font-size: 28px; font-weight: bold; margin-top: 5px; }
+tr.clickable-row.selected-row td { background-color: #e0f2fe !important; } /* สีฟ้าอ่อน Tailwind bg-sky-100 */
+#infoSlide {
+    position: fixed;
+    top: 0;
+    right: -40vw;      /* ซ่อนไว้ทางขวาเท่ากับความกว้างใหม่ */
+    width: 30vw;       /* 👈 ปรับความกว้างเป็น 40% ของหน้าจอ */
+    min-width: 360px;  /* ป้องกันไม่ให้แคบเกินไปเวลาเปิดบนมือถือหรือจอเล็ก */
+    height: 100%;
+    background-color: #ffffff;
+    box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1); /* เพิ่มเงาฝั่งซ้ายให้มิติสวยขึ้น */
+    z-index: 1000;
+    overflow-y: auto;  /* ให้เลื่อนขึ้นลงได้หากข้อมูลยาวเกินหน้าจอ */
+    transition: right 0.3s ease-in-out; /* อนิเมชันเลื่อนเข้า-ออก */
+}
+
+/* เมื่อมีคลาส .open ให้เลื่อนกลับเข้ามาที่ขอบขวาพอดี */
+#infoSlide.open {
+    right: 0;
+}
