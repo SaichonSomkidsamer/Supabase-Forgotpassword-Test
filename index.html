@@ -265,6 +265,40 @@
                 alert("เกิดข้อผิดพลาดภายในระบบ: " + err.message);
             }
         }
+        // ตัวอย่างโค้ดในส่วนของการ Login
+async function handleLogin() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    // 1. ทำการ Login กับ Supabase ปกติ
+    const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password,
+    });
+
+    if (error) {
+        alert('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+        return;
+    }
+
+    // 2. ป้อมปราการ: ตรวจสอบสถานะในตาราง admin_users ของคุณ
+    const { data: adminData, error: dbError } = await window.supabaseClient
+        .from('admin_users')
+        .select('status') // ดึงแค่คอลัมน์ status
+        .eq('email', email)
+        .single();
+
+    // 3. ถ้าสถานะเป็น 'ระงับการใช้งาน' ให้ Logout ทันที
+    if (adminData && adminData.status === 'ระงับการใช้งาน') {
+        await window.supabaseClient.auth.signOut();
+        alert('บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อแอดมิน');
+        return; // ไม่ต้องไปหน้าถัดไป
+    }
+
+    // 4. ถ้าผ่านหมดค่อยให้เข้า
+    alert('เข้าสู่ระบบสำเร็จ!');
+    window.location.href = 'orders.html';
+}
     </script>
 </body>
 </html>
