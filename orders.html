@@ -932,6 +932,16 @@
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(loadOrders, 500);
         });
+        async function hideAdminRestrictions() {
+    const { data: { user } } = await window.supabaseClient.auth.getUser();
+    const { data } = await window.supabaseClient.from('admin_users').select('role').eq('email', user.email).single();
+
+    if (data && data.role === 'Admin') {
+        // ซ่อนทุกอย่างที่มี class="owner-only"
+        document.querySelectorAll('.owner-only').forEach(el => el.style.display = 'none');
+    }
+}
+hideAdminRestrictions();
     </script>
 </body>
 
