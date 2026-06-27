@@ -933,15 +933,32 @@
             setTimeout(loadOrders, 500);
         });
         async function hideAdminRestrictions() {
-    const { data: { user } } = await window.supabaseClient.auth.getUser();
-    const { data } = await window.supabaseClient.from('admin_users').select('role').eq('email', user.email).single();
+      const client = window.supabaseClient;
+      const { data: { user } } = await client.auth.getUser();
+      if (!user) return;
 
-    if (data && data.role === 'Admin') {
-        // ซ่อนทุกอย่างที่มี class="owner-only"
-        document.querySelectorAll('.owner-only').forEach(el => el.style.display = 'none');
-    }
-}
-hideAdminRestrictions();
+      // ดึง Role ของผู้ใช้ปัจจุบัน
+      const { data } = await client
+          .from('admin_users')
+          .select('role')
+          .eq('email', user.email)
+          .single();
+
+      // ถ้าไม่ใช่ Owner ให้ซ่อน
+      if (data && data.role !== 'Owner') {
+          const elements = document.querySelectorAll('.owner-only');
+          elements.forEach(el => {
+              el.style.display = 'none'; // ซ่อนปุ่ม
+              el.disabled = true;        // กันไว้เผื่อกดผ่านคีย์บอร์ด
+          });
+      }
+  }
+
+  // ต้องมั่นใจว่ามีการเรียกฟังก์ชันนี้หลังจากโหลดหน้าเว็บ
+  // ให้เพิ่มไว้ใน window.onload หรือเรียกต่อท้ายจากฟังก์ชัน loadOrders()
+  window.addEventListener('DOMContentLoaded', () => {
+      hideAdminRestrictions();
+  });
     </script>
 </body>
 
