@@ -39,16 +39,24 @@
         thead th {
             position: sticky;
             top: 0;
-            background-color: #f1f5f9 !important;
+            background-color: #f8fafc !important;
             z-index: 10;
-            box-shadow: inset 0 -1px 0 #cbd5e1;
+            box-shadow: inset 0 -1px 0 #e2e8f0;
             padding: 14px 10px;
             font-weight: 600;
-            color: #475569;
+            color: #64748b;
             text-align: left;
+            font-size: 14px;
         }
 
-        td { padding: 12px 10px; border-bottom: 1px solid #f1f5f9; color: #334155; background-color: #ffffff; }
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            background-color: #ffffff;
+            font-size: 14px;
+        }
+
         tr.clickable-row { cursor: pointer; }
         tr.clickable-row:hover td { background-color: #f1f3f5 !important; }
 
@@ -65,14 +73,22 @@
         }
         .btn-add-member:hover { background: #218838; }
 
+        /* ปรับสไตล์ปุ่มลบให้ดูเต็มและกดง่ายขึ้นเมื่ออยู่ใน Slide panel */
         .btn-action-delete {
             background: #dc3545;
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
+            padding: 10px 16px;
+            border-radius: 8px;
             cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            width: 100%;
             transition: all 0.2s;
+            margin-top: 25px;
+            display: block;
+            text-align: center;
+            box-sizing: border-box;
         }
         .btn-action-delete:hover { background: #c82333; }
 
@@ -176,13 +192,13 @@
                     <button id="toggleSidebarBtn" class="menu-toggle-btn">☰</button>
                     <h1 style="font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -0.5px;">จัดการผู้ดูแลระบบ</h1>
                 </div>
-
                 <div class="user-profile-dropdown">
                     <div class="dropdown-trigger" onclick="toggleUserDropdown(event)">
                         <span id="txtUserEmail">กำลังโหลด...</span> <span style="font-size: 10px;">▼</span>
                     </div>
                     <div id="userDropdownMenu" class="dropdown-menu">
-                        <button onclick="confirmLogout()" class="dropdown-item text-danger">ออกจากระบบ</button>
+                        <a href="update-password.html" target="_blank" class="dropdown-item">เปลี่ยนรหัสผ่าน</a>
+                        <button type="button" class="dropdown-item text-danger" onclick="confirmLogout()">ออกจากระบบ</button>
                     </div>
                 </div>
             </div>
@@ -217,11 +233,10 @@
                                 <th>บทบาท (Role)</th>
                                 <th>สถานะใช้งาน</th>
                                 <th>วันที่เพิ่มระบบ (created_at)</th>
-                                <th>จัดการ</th>
                               </tr>
                             </thead>
                             <tbody id="adminTableBody">
-                                <tr><td colspan="6" style="text-align: center;">กำลังโหลดข้อมูลแอดมิน...</td></tr>
+                                <tr><td colspan="5" style="text-align: center;">กำลังโหลดข้อมูลแอดมิน...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -244,12 +259,11 @@
         document.getElementById('nav-admins').classList.add('active');
         let allAdmins = [];
 
-        // ฟังก์ชันดึงข้อมูลจาก admin_users มาแสดงในตาราง
         async function loadAdmins() {
             if (typeof supabase === 'undefined' || !supabase) return;
             const { data, error } = await supabase.from('admin_users').select('*').order('created_at', { ascending: true });
             if (error) {
-                document.getElementById('adminTableBody').innerHTML = "<tr><td colspan='6' style='color:red; text-align:center;'>เกิดข้อผิดพลาด: " + error.message + "</td></tr>";
+                document.getElementById('adminTableBody').innerHTML = "<tr><td colspan='5' style='color:red; text-align:center;'>เกิดข้อผิดพลาด: " + error.message + "</td></tr>";
                 return;
             }
             allAdmins = data || [];
@@ -259,7 +273,7 @@
         function renderTable(data) {
             const tbody = document.getElementById('adminTableBody');
             if (data.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>ไม่พบรายชื่อแอดมิน</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>ไม่พบรายชื่อแอดมิน</td></tr>";
                 return;
             }
 
@@ -291,9 +305,6 @@
                         </select>
                     </td>
                     <td>${formatDate(admin.created_at)}</td>
-                    <td>
-                        <button onclick="deleteAdmin('${admin.id}', '${admin.email}')" class="btn-action-delete">ลบ</button>
-                    </td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -309,6 +320,7 @@
             renderTable(filtered);
         }
 
+        /* 🟢 แก้ไขฟังก์ชันแสดง Slide-over panel: เพิ่มปุ่มลบแอดมินไว้ที่นี่ */
         function showSlide(admin) {
             const content = document.getElementById('slideContent');
             const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleString('th-TH') : '-';
@@ -319,6 +331,8 @@
                 <div class="info-group"><label>บทบาทสิทธิ์ (Role)</label><p>${admin.role || 'Admin'}</p></div>
                 <div class="info-group"><label>สถานะการเข้าใช้งาน</label><p>${admin.status || 'เปิดใช้งาน'}</p></div>
                 <div class="info-group"><label>วันที่ลงทะเบียนระบบ</label><p>${formatDate(admin.created_at)}</p></div>
+
+                <button onclick="deleteAdmin('${admin.id}', '${admin.email}')" class="btn-action-delete">ลบแอดมินคนนี้</button>
             `;
             document.getElementById('infoSlide').classList.add('open');
         }
@@ -327,7 +341,6 @@
             document.getElementById('infoSlide').classList.remove('open');
         }
 
-        // ฟังก์ชันเพิ่ม Admin ใหม่
         async function addAdmin() {
             const email = document.getElementById('newEmail').value.trim();
             const role = document.getElementById('newRole').value;
@@ -381,19 +394,22 @@
             else console.log("อัปเดตข้อมูลแอดมินสำเร็จ");
         }
 
+        /* 🟢 เพิ่มคำสั่ง closeSlide() หลังจากลบสำเร็จ เพื่อปิดหน้าต่างเมื่อลบข้อมูลไปแล้ว */
         async function deleteAdmin(id, email) {
             if (!confirm(`คุณแน่ใจใช่ไหมว่าต้องการลบแอดมินอีเมล: ${email}?`)) return;
             const { error } = await supabase.from('admin_users').delete().eq('id', id);
             if (error) alert("ลบไม่สำเร็จ: " + error.message);
-            else { alert("ลบข้อมูลแอดมินเรียบร้อยแล้ว"); loadAdmins(); }
+            else {
+                alert("ลบข้อมูลแอดมินเรียบร้อยแล้ว");
+                closeSlide();
+                loadAdmins();
+            }
         }
 
-        // ปุ่ม Hamburger เมนูด้านซ้าย
         document.getElementById('toggleSidebarBtn').addEventListener('click', () => {
             document.querySelector('.sidebar').classList.toggle('closed');
         });
 
-        // ฟังก์ชันควบคุม User Dropdown Menu มุมขวาบน
         async function initUserDropdown() {
             if (typeof supabase !== 'undefined' && supabase) {
                 try {
@@ -408,7 +424,6 @@
                 }
             }
 
-            // คลิกที่อื่นนอกเหนือจากเมนู ให้ปิดเมนูอัตโนมัติ
             window.addEventListener('click', function(e) {
                 if (!e.target.closest('.user-profile-dropdown')) {
                     const menu = document.getElementById('userDropdownMenu');
@@ -433,10 +448,9 @@
             }
         }
 
-        // 🟢 เรียกให้ระบบทั้งหมดทำงานเมื่อเปิดหน้าเว็บ
         window.addEventListener('DOMContentLoaded', () => {
-            loadAdmins();            // ดึงรายชื่อลงตาราง
-            initUserDropdown();      // แสดงอีเมลแอดมินมุมขวาบน
+            loadAdmins();
+            initUserDropdown();
         });
     </script>
 </body>
