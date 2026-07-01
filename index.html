@@ -5,9 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เข้าสู่ระบบ / ลงทะเบียน - OMS Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin crossOrigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+    <script>
+        // 🚨 [เพิ่มส่วนนี้] ระบบตรวจจับลิงก์กู้คืนรหัสผ่าน/คำเชิญอัตโนมัติ
+        // หาก URL มี #access_token=... และมีคำว่า type=invite หรือ type=recovery
+        if (window.location.hash && (window.location.hash.includes('type=invite') || window.location.hash.includes('type=recovery') || window.location.hash.includes('access_token='))) {
+            // สั่งดีดผู้ใช้ไปหน้า update-password.html ทันที พร้อมหิ้ว Token ติดตามไปด้วย
+            window.location.href = 'update-password.html' + window.location.hash;
+        }
+    </script>
+
     <style>
         * {
             box-sizing: border-box;
@@ -162,8 +172,8 @@
             </div>
         </div>
         <div class="form-group" style="text-align: right; margin-top: -10px; margin-bottom: 20px;">
-    <a href="forgot-password.html" style="color: #5c5cff; text-decoration: none; font-size: 14px;">ลืมรหัสผ่าน?</a>
-</div>
+            <a href="forgot-password.html" style="color: #5c5cff; text-decoration: none; font-size: 14px;">ลืมรหัสผ่าน?</a>
+        </div>
 
         <button id="submitBtn" onclick="handleAuth()" class="btn-submit">เข้าสู่ระบบ</button>
 
@@ -176,7 +186,6 @@
     <script>
         let isLogin = true;
 
-        // 1. ฟังก์ชันสลับหน้าจอระหว่าง Login และ Register
         function toggleFormMode() {
             isLogin = !isLogin;
             const formTitle = document.getElementById('formTitle');
@@ -202,7 +211,6 @@
             }
         }
 
-        // 2. ระบบควบคุมการ แสดง / ซ่อน รหัสผ่านด้วยดวงตา
         document.getElementById('togglePassword').addEventListener('click', function () {
             const passwordInput = document.getElementById('password');
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
@@ -210,108 +218,67 @@
             this.textContent = type === 'password' ? '👁️' : '🙈';
         });
 
-        // 3. ระบบทำงานร่วมกับ Supabase Auth (แก้ไขให้ดึงตัวแปร window.supabaseClient ตาม config.js แล้ว)
-        // 3. ระบบทำงานร่วมกับ Supabase Auth
-    async function handleAuth() {
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-        const errorMsg = document.getElementById('errorMessage');
+        async function handleAuth() {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMessage');
 
-        errorMsg.textContent = '';
-        errorMsg.style.display = 'none';
+            errorMsg.textContent = '';
+            errorMsg.style.display = 'none';
 
-        const client = window.supabaseClient;
+            const client = window.supabaseClient;
 
-        if (!email || !password) {
-            errorMsg.textContent = "กรุณากรอกข้อมูลให้ครบถ้วน";
-            errorMsg.style.display = 'block';
-            return;
-        }
-
-        try {
-            if (isLogin) {
-                // --- ขั้นตอนการ Login ---
-                const { data, error } = await client.auth.signInWithPassword({ email, password });
-
-                if (error) {
-                    errorMsg.textContent = error.message;
-                    errorMsg.style.display = 'block';
-                    return;
-                }
-
-                // --- ป้อมปราการตรวจสอบสถานะ ---
-                const { data: adminData, error: dbError } = await client
-                    .from('admin_users')
-                    .select('status')
-                    .eq('email', email)
-                    .single();
-
-                // ถ้ามีชื่อในตาราง แต่สถานะเป็น 'ระงับการใช้งาน' ให้ดีดออก!
-                if (adminData && adminData.status === 'ระงับการใช้งาน') {
-                    await client.auth.signOut();
-                    alert('บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อแอดมิน');
-                    return;
-                }
-
-                // ถ้าผ่านหมด
-                alert("เข้าสู่ระบบสำเร็จ!");
-                window.location.href = 'orders.html';
-
-            } else {
-                // --- ขั้นตอนการสมัครสมาชิก ---
-                if (password.length < 6) {
-                    errorMsg.textContent = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
-                    errorMsg.style.display = 'block';
-                    return;
-                }
-
-                const { data, error } = await client.auth.signUp({ email, password });
-                if (error) {
-                    errorMsg.textContent = error.message;
-                    errorMsg.style.display = 'block';
-                } else {
-                    alert('สมัครบัญชีแอดมินสำเร็จ! กรุณาให้ Owner เปิดสิทธิ์ในระบบก่อนใช้งาน');
-                    toggleFormMode();
-                }
+            if (!email || !password) {
+                errorMsg.textContent = "กรุณากรอกข้อมูลให้ครบถ้วน";
+                errorMsg.style.display = 'block';
+                return;
             }
-        } catch (err) {
-            alert("เกิดข้อผิดพลาดภายในระบบ: " + err.message);
+
+            try {
+                if (isLogin) {
+                    const { data, error } = await client.auth.signInWithPassword({ email, password });
+
+                    if (error) {
+                        errorMsg.textContent = error.message;
+                        errorMsg.style.display = 'block';
+                        return;
+                    }
+
+                    const { data: adminData, error: dbError } = await client
+                        .from('admin_users')
+                        .select('status')
+                        .eq('email', email)
+                        .single();
+
+                    if (adminData && adminData.status === 'ระงับการใช้งาน') {
+                        await client.auth.signOut();
+                        alert('บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อแอดมิน');
+                        return;
+                    }
+
+                    alert("เข้าสู่ระบบสำเร็จ!");
+                    window.location.href = 'orders.html';
+
+                } else {
+                    if (password.length < 6) {
+                        errorMsg.textContent = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
+                        errorMsg.style.display = 'block';
+                        return;
+                    }
+
+                    const { data, error } = await client.auth.signUp({ email, password });
+                    if (error) {
+                        errorMsg.textContent = error.message;
+                        errorMsg.style.display = 'block';
+                    } else {
+                        alert('สมัครบัญชีแอดมินสำเร็จ! กรุณาให้ Owner เปิดสิทธิ์ในระบบก่อนใช้งาน');
+                        toggleFormMode();
+                    }
+                }
+            } catch (err) {
+                alert("เกิดข้อผิดพลาดภายในระบบ: " + err.message);
+            }
         }
-    }
-        // ตัวอย่างโค้ดในส่วนของการ Login
-async function handleLogin() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    // 1. ทำการ Login กับ Supabase ปกติ
-    const { data, error } = await window.supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password,
-    });
-
-    if (error) {
-        alert('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
-        return;
-    }
-
-    // 2. ป้อมปราการ: ตรวจสอบสถานะในตาราง admin_users ของคุณ
-    const { data: adminData, error: dbError } = await window.supabaseClient
-        .from('admin_users')
-        .select('status') // ดึงแค่คอลัมน์ status
-        .eq('email', email)
-        .single();
-
-    // 3. ถ้าสถานะเป็น 'ระงับการใช้งาน' ให้ Logout ทันที
-    if (adminData && adminData.status === 'ระงับการใช้งาน') {
-        await window.supabaseClient.auth.signOut();
-        alert('บัญชีของคุณถูกระงับการใช้งาน กรุณาติดต่อแอดมิน');
-        return; // ไม่ต้องไปหน้าถัดไป
-    }
-
-    // 4. ถ้าผ่านหมดค่อยให้เข้า
-    alert('เข้าสู่ระบบสำเร็จ!');
-    window.location.href = 'orders.html';
-}
     </script>
 </body>
 </html>
