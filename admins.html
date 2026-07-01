@@ -341,53 +341,68 @@
             document.getElementById('infoSlide').classList.remove('open');
         }
 
-        async function addAdmin() {
-            const email = document.getElementById('newEmail').value.trim();
-            const role = document.getElementById('newRole').value;
+        // ค้นหาฟังก์ชัน `async function addAdmin()` เดิมในไฟล์ admins.html และแทนที่ด้วยโค้ดชุดนี้:
 
-            if (!email) {
-                alert('กรุณากรอกอีเมล');
-                return;
-            }
+async function addAdmin() {
+    const email = document.getElementById('newEmail').value.trim();
+    const role = document.getElementById('newRole').value;
 
-            const { data, error } = await supabase.auth.signUp({
-                email: email,
-                password: 'TemporaryPassword123!',
-            });
+    if (!email) {
+        alert('กรุณากรอกอีเมล');
+        return;
+    }
 
-            if (error) {
-                alert('สร้างบัญชีไม่สำเร็จ: ' + error.message);
-                return;
-            }
+    // แสดงสถานะการโหลดชั่วคราว
+    const btn = document.querySelector('.btn-add-member');
+    const originalText = btn.innerText;
+    btn.innerText = 'กำลังดำเนินการ...';
+    btn.disabled = true;
 
-            const { error: dbError } = await supabase.from('admin_users').insert([{
-                id: data.user.id,
-                email: email,
-                role: role,
-                status: 'เปิดใช้งาน'
-            }]);
-
-            if (dbError) {
-                alert('บันทึกข้อมูลไม่สำเร็จ: ' + dbError.message);
-                return;
-            }
-
-            emailjs.send("service_87euujb", "template_bqpc2gb", {
-                to_email: email,
-                password: 'TemporaryPassword123!'
-            })
-            .then(() => {
-                alert('เพิ่มแอดมินสำเร็จ และระบบได้ส่งรหัสผ่านทางอีเมลเรียบร้อยแล้ว!');
-                document.getElementById('newEmail').value = '';
-                loadAdmins();
-            })
-            .catch((err) => {
-                alert('บันทึกข้อมูลสำเร็จ แต่ส่งอีเมลไม่ได้: ' + JSON.stringify(err));
-                document.getElementById('newEmail').value = '';
-                loadAdmins();
-            });
+    try {
+        // ดึง Session Token ของแอดมิน/Owner ปัจจุบันที่ล็อกอินอยู่ส่งไปยืนยันตนหลังบ้าน
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            alert('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่');
+            return;
         }
 
+        // เรียกใช้งาน Supabase Edge Function (แทนการสมัครสมาชิกลอยๆ แบบเดิม)
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/invite-admin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`,
+                'apikey': SUPABASE_ANON_KEY
+            },
+            body: JSON.stringify({ email: email, role: role })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'เกิดข้อผิดพลาดในการสร้างคำเชิญ');
+        }
+
+        const inviteLink = result.invite_link;
+
+        // ส่ง Email ผ่าน EmailJS พร้อมแนบ {{invite_link}} ที่แท้จริงจากระบบเข้าตัวแปร
+        await emailjs.send("service_87euujb", "template_bqpc2gb", {
+            to_email: email,
+            invite_link: inviteLink // ตัวแปรนี้จะถูกส่งไปที่ EmailJS
+        });
+
+        alert('เพิ่มแอดมินสำเร็จ และระบบได้ส่งลิงก์ตั้งรหัสผ่านใหม่ทางอีเมลเรียบร้อยแล้ว!');
+        document.getElementById('newEmail').value = '';
+        loadAdmins();
+
+    } catch (err) {
+        alert('เกิดข้อผิดพลาด: ' + err.message);
+    } finally {
+        // คืนค่าปุ่มเดิม
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+}
         async function updateAdminField(id, field, value) {
             const { error } = await supabase.from('admin_users').update({ [field]: value }).eq('id', id);
             if (error) alert("อัปเดตไม่สำเร็จ: " + error.message);
